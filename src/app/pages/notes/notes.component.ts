@@ -1,13 +1,10 @@
 import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
 import { NoteService } from '../../services/note.service';
 import { Note } from '../../models/note.model';
 
 @Component({
   selector: 'app-notes',
-  standalone: true,
-  imports: [CommonModule, FormsModule],
+  standalone: false,
   templateUrl: './notes.component.html',
   styleUrls: ['./notes.component.css'],
 })
@@ -43,18 +40,20 @@ export class NotesComponent implements OnInit {
     if (!trimmed) return;
 
     this.noteService.createNote({ content: trimmed }).subscribe({
-      next: () => {
+      next: (note) => {
+        this.notes.unshift(note);
         this.content = '';
-        this.load();
       },
-      error: () => (this.error = 'Failed to create note.'),
+      error: () => (this.error = 'Failed to create note.')
     });
   }
 
   remove(id: number) {
     this.noteService.deleteNote(id).subscribe({
-      next: () => this.load(),
-      error: () => (this.error = 'Failed to delete note.'),
+      next: () => {
+        this.notes = this.notes.filter(n => n.id !== id);
+      },
+      error: () => (this.error = 'Failed to delete note.')
     });
   }
 }

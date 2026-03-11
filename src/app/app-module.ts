@@ -9,14 +9,14 @@ import { NotesComponent } from './pages/notes/notes.component';
 
 @NgModule({
   declarations: [
-    App
+    App,
+    NotesComponent
   ],
   imports: [
     BrowserModule,
     AppRoutingModule,
     FormsModule,
-    HttpClientModule,
-    NotesComponent
+    HttpClientModule
   ],
   providers: [],
   bootstrap: [App]

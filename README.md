@@ -1,59 +1,178 @@
-# AstrapayAngular2External
+# Angular Astrapay External Project
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 21.2.1.
+Berikut adalah project Angular untuk aplikasi external AstraPay, yang sesuai dengan konvensi yang digunakan pada AstraPay.
 
-## Development server
+## Development Server
 
-To start a local development server, run:
+Untuk menjalankan development server, jalankan:
 
 ```bash
 ng serve
 ```
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
+Setelah server berjalan, buka browser dan navigasi ke `http://localhost:4200/`. Aplikasi akan otomatis reload setiap kali ada perubahan pada source file.
 
-## Code scaffolding
+> **Catatan:** Project ini menggunakan proxy untuk menghindari CORS. Konfigurasi proxy ada di `proxy.conf.json` dan sudah terdaftar di `angular.json`, sehingga aktif otomatis saat `ng serve`.
 
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
+## Build
 
-```bash
-ng generate component component-name
-```
-
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
-
-```bash
-ng generate --help
-```
-
-## Building
-
-To build the project run:
+Untuk build project, jalankan:
 
 ```bash
 ng build
 ```
 
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
+Hasil build akan tersimpan di direktori `dist/`.
 
-## Running unit tests
+## Running Unit Tests
 
-To execute unit tests with the [Vitest](https://vitest.dev/) test runner, use the following command:
+Untuk menjalankan unit test dengan [Vitest](https://vitest.dev/):
 
 ```bash
 ng test
 ```
 
-## Running end-to-end tests
+## Package Structure
 
-For end-to-end (e2e) testing, run:
-
-```bash
-ng e2e
+```
+src
+ +- app
+     +- app.ts
+     +- app.html
+     +- app.css
+     +- app-module.ts
+     +- app-routing-module.ts
+     |
+     +- models
+     |   +- [Name].model.ts
+     |
+     +- pages
+     |   +- [feature-name]
+     |       +- [feature-name].component.ts
+     |       +- [feature-name].component.html
+     |       +- [feature-name].component.css
+     |
+     +- services
+         +- [Name].service.ts
 ```
 
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
+## Models
 
-## Additional Resources
+Model adalah interface TypeScript yang merepresentasikan struktur data dari backend. Setiap file model harus diakhiri dengan `.model.ts`.
 
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+Buat interface terpisah untuk request dan response jika strukturnya berbeda.
+
+Contoh:
+
+```typescript
+export interface Note {
+  id: number;
+  content: string;
+}
+
+export interface CreateNoteRequest {
+  content: string;
+}
+```
+
+## Pages (Components)
+
+Folder `pages` berisi komponen Angular yang merepresentasikan halaman/fitur. Setiap komponen harus bersifat **standalone** dan menggunakan `imports` untuk mendeklarasikan dependensi module-nya sendiri.
+
+Penamaan folder dan file menggunakan kebab-case dan diakhiri dengan `.component.ts`.
+
+Contoh:
+
+```typescript
+@Component({
+  selector: 'app-notes',
+  standalone: false,
+  templateUrl: './notes.component.html',
+  styleUrls: ['./notes.component.css'],
+})
+export class NotesComponent implements OnInit {
+  notes: Note[] = [];
+  content = '';
+  loading = false;
+  error = '';
+
+  constructor(private noteService: NoteService) {}
+
+  ngOnInit(): void {
+    this.load();
+  }
+}
+```
+
+Aturan:
+- Gunakan `standalone: false` sesuai konvensi project (dikonfigurasi di `angular.json` schematics)
+- Daftarkan komponen di `declarations` pada `AppModule`
+- Module seperti `CommonModule`, `FormsModule` cukup didaftarkan sekali di `AppModule` imports, tidak perlu di tiap komponen
+
+## Services
+
+Folder `services` berisi class Angular service yang bertanggung jawab untuk komunikasi dengan backend API melalui `HttpClient`.
+
+Setiap nama service harus diakhiri dengan `Service`, contoh `NoteService`.
+
+Ketika sebuah service hanya memiliki **1 (satu)** implementasi konkrit maka **tidak perlu membuat interface**. Membuat interface hanya untuk satu implementasi seperti `NoteServiceImpl` adalah anti-pattern.
+
+Contoh:
+
+```typescript
+@Injectable({ providedIn: 'root' })
+export class NoteService {
+  private readonly baseUrl = '/api/notes';
+
+  constructor(private http: HttpClient) {}
+
+  getNotes(): Observable<Note[]> {
+    return this.http.get<Note[]>(this.baseUrl);
+  }
+
+  createNote(payload: CreateNoteRequest): Observable<Note> {
+    return this.http.post<Note>(this.baseUrl, payload);
+  }
+
+  deleteNote(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.baseUrl}/${id}`);
+  }
+}
+```
+
+Aturan:
+- Gunakan `providedIn: 'root'` agar service tersedia secara global tanpa perlu mendaftarkan di module
+- Gunakan **relative URL** (contoh `/api/notes`) agar request melewati proxy
+- Jangan hardcode URL absolut ke backend di service
+
+## Routing
+
+Routing dikonfigurasi di `app-routing-module.ts`. Setiap komponen halaman baru harus didaftarkan di sini.
+
+Contoh:
+
+```typescript
+const routes: Routes = [
+  { path: '', component: NotesComponent },
+  { path: 'notes', component: NotesComponent }
+];
+```
+
+## Proxy Configuration
+
+Untuk menghindari CORS saat development, project ini menggunakan Angular dev server proxy. Konfigurasi ada di `proxy.conf.json`:
+
+```json
+{
+  "/api": {
+    "target": "http://localhost:8000",
+    "secure": false,
+    "changeOrigin": true
+  }
+}
+```
+
+Dengan konfigurasi ini, semua request ke `/api/*` dari Angular akan di-forward ke `http://localhost:8000/api/*`. Proxy sudah terdaftar di `angular.json` sehingga aktif otomatis saat `ng serve`.
+
+> **Penting:** Proxy hanya berfungsi di development server. Untuk production, konfigurasi CORS harus dihandle di sisi backend atau reverse proxy (nginx, dll).
+

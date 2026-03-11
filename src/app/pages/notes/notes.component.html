@@ -1,16 +1,21 @@
-<h2>Simple Notes</h2>
+<div class="container">
 
-<div *ngIf="error" class="error">{{ error }}</div>
-<div *ngIf="loading">Loading...</div>
+  <h2>📝 Simple Notes</h2>
 
-<div class="create">
-  <input [(ngModel)]="content" placeholder="note content" />
-  <button (click)="create()">Add</button>
+  <div *ngIf="error" class="error">{{ error }}</div>
+
+  <div class="create">
+    <input [(ngModel)]="content" placeholder="Write a note..." (keyup.enter)="create()" />
+    <button (click)="create()">Add</button>
+  </div>
+
+  <div *ngIf="loading" class="loading">Loading notes...</div>
+
+  <ul class="notes">
+    <li *ngFor="let n of notes">
+      <span>{{ n.content }}</span>
+      <button class="delete" (click)="remove(n.id)">✕</button>
+    </li>
+  </ul>
+
 </div>
-
-<ul>
-  <li *ngFor="let n of notes">
-    {{ n.content }}
-    <button (click)="remove(n.id)">Delete</button>
-  </li>
-</ul>
