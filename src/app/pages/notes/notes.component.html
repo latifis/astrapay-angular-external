@@ -10,6 +10,10 @@
   </div>
 
   <div *ngIf="loading" class="loading">Loading notes...</div>
+  
+  <div *ngIf="!loading && notes.length === 0" class="empty">
+    No notes yet. Create your first note ✨
+  </div>
 
   <ul class="notes">
     <li *ngFor="let n of notes">
