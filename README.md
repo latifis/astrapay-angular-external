@@ -176,3 +176,11 @@ Dengan konfigurasi ini, semua request ke `/api/*` dari Angular akan di-forward k
 
 > **Penting:** Proxy hanya berfungsi di development server. Untuk production, konfigurasi CORS harus dihandle di sisi backend atau reverse proxy (nginx, dll).
 
+
+## Application Screenshots
+
+### 1. Tampilan List Kosong
+![Empty Notes](docs/screenshots/view-with-no-data.jpeg)
+
+### 2. Tampilan 6 Notes
+![Notes List](docs/screenshots/view-with-six-data.jpeg)
